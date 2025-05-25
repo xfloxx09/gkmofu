@@ -1,0 +1,1339 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coaching Tracker - Deutsche Telekom Style</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --telekom-magenta: #E20074;
+            --telekom-dark: #1A1A1A;
+            --telekom-light-magenta: #FF3D9A;
+            --telekom-gray: #333333;
+            --telekom-bg: #0F0F0F;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, var(--telekom-bg) 0%, var(--telekom-dark) 100%);
+            color: white;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: linear-gradient(90deg, var(--telekom-magenta), var(--telekom-light-magenta));
+            padding: 20px;
+            margin-bottom: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(226, 0, 116, 0.3);
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            font-weight: 700;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .nav-bar {
+            background: var(--telekom-gray);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .nav-btn, .btn {
+            background: linear-gradient(45deg, var(--telekom-magenta), var(--telekom-light-magenta));
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .nav-btn:hover, .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(226, 0, 116, 0.4);
+        }
+
+        .section {
+            background: var(--telekom-gray);
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+
+        .login-form, .coaching-form {
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--telekom-light-magenta);
+            font-weight: 600;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            background: var(--telekom-dark);
+            border: 2px solid var(--telekom-magenta);
+            border-radius: 6px;
+            color: white;
+            font-size: 16px;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--telekom-light-magenta);
+            box-shadow: 0 0 10px rgba(226, 0, 116, 0.3);
+        }
+
+        .checkbox-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .checkbox-item {
+            background: var(--telekom-dark);
+            padding: 15px;
+            border-radius: 8px;
+            border: 2px solid var(--telekom-gray);
+        }
+
+        .checkbox-item.checked {
+            border-color: var(--telekom-magenta);
+            background: rgba(226, 0, 116, 0.1);
+        }
+
+        .checkbox-item.neutral {
+            border-color: #666;
+            background: rgba(102, 102, 102, 0.1);
+        }
+
+        .performance-slider {
+            margin: 20px 0;
+        }
+
+        .slider {
+            width: 100%;
+            height: 8px;
+            border-radius: 4px;
+            background: var(--telekom-dark);
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--telekom-magenta);
+            cursor: pointer;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .card {
+            background: var(--telekom-gray);
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid var(--telekom-magenta);
+        }
+
+        .stat-number {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: var(--telekom-light-magenta);
+        }
+
+        .chart-container {
+            background: var(--telekom-gray);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+
+        .coaching-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .coaching-item {
+            background: var(--telekom-dark);
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border-left: 4px solid var(--telekom-magenta);
+        }
+
+        .score-display {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: var(--telekom-light-magenta);
+            text-align: center;
+            margin: 10px 0;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .user-info {
+            background: var(--telekom-dark);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .logout-btn {
+            background: #666;
+            float: right;
+        }
+
+        .team-selector {
+            margin-bottom: 20px;
+        }
+
+        .alert {
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 6px;
+            background: rgba(226, 0, 116, 0.1);
+            border: 1px solid var(--telekom-magenta);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Login Screen -->
+        <div id="loginScreen" class="section">
+            <div class="header">
+                <h1>🎯 Coaching Tracker</h1>
+                <p>Deutsche Telekom Customer Support</p>
+            </div>
+            
+            <form class="login-form" onsubmit="handleLogin(event)">
+                <div class="form-group">
+                    <label for="username">Benutzername:</label>
+                    <input type="text" id="username" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Passwort:</label>
+                    <input type="password" id="password" required>
+                </div>
+                <button type="submit" class="btn">Anmelden</button>
+            </form>
+        </div>
+
+        <!-- Main Dashboard -->
+        <div id="mainDashboard" class="hidden">
+            <div class="header">
+                <h1>Coaching Dashboard</h1>
+                <div class="user-info">
+                    <span id="userWelcome"></span>
+                    <button class="btn logout-btn" onclick="logout()">Abmelden</button>
+                </div>
+            </div>
+
+            <div class="nav-bar">
+                <button class="nav-btn" onclick="showSection('overview')">Übersicht</button>
+                <button class="nav-btn" onclick="showSection('addCoaching')" id="addCoachingBtn">Coaching hinzufügen</button>
+                <button class="nav-btn" onclick="showSection('teamView')" id="teamViewBtn">Team Ansicht</button>
+                <button class="nav-btn" onclick="showSection('completeView')">Gesamtansicht</button>
+                <button class="nav-btn" onclick="showSection('admin')" id="adminBtn" class="hidden">Admin Panel</button>
+                <button class="nav-btn" onclick="showSection('projectManager')" id="pmBtn" class="hidden">Projekt Manager</button>
+            </div>
+
+            <!-- Overview Section -->
+            <div id="overviewSection" class="section">
+                <h2>Dashboard Übersicht</h2>
+                <div class="dashboard-grid">
+                    <div class="card">
+                        <h3>Heutige Coachings</h3>
+                        <div class="stat-number" id="todayCoachings">0</div>
+                    </div>
+                    <div class="card">
+                        <h3>Durchschnittliche Bewertung</h3>
+                        <div class="stat-number" id="avgScore">0.0</div>
+                    </div>
+                    <div class="card">
+                        <h3>Gesamtzeit (Min)</h3>
+                        <div class="stat-number" id="totalTime">0</div>
+                    </div>
+                    <div class="card">
+                        <h3>Aktive Teams</h3>
+                        <div class="stat-number" id="activeTeams">10</div>
+                    </div>
+                </div>
+                
+                <div class="chart-container">
+                    <h3>Coaching Performance Trend</h3>
+                    <canvas id="performanceChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Add Coaching Section -->
+            <div id="addCoachingSection" class="section hidden">
+                <h2>Neues Coaching hinzufügen</h2>
+                
+                <div class="team-selector" id="teamSelectorDiv">
+                    <label for="selectedTeam">Team auswählen:</label>
+                    <select id="selectedTeam" onchange="updateTeamMembers()">
+                        <option value="">Team auswählen...</option>
+                    </select>
+                </div>
+
+                <form class="coaching-form" onsubmit="addCoaching(event)">
+                    <div class="form-group">
+                        <label for="teamMember">Team Mitglied:</label>
+                        <select id="teamMember" required>
+                            <option value="">Mitglied auswählen...</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="coachingStyle">Coaching Stil:</label>
+                        <select id="coachingStyle" onchange="toggleTcapId()" required>
+                            <option value="">Stil auswählen...</option>
+                            <option value="side-by-side">Side-by-Side</option>
+                            <option value="tcap">T-CAP</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group hidden" id="tcapIdGroup">
+                        <label for="tcapId">T-CAP ID:</label>
+                        <input type="text" id="tcapId">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="timeSpent">Zeit verbracht (Minuten):</label>
+                        <input type="number" id="timeSpent" min="1" max="480" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Checkmarks (klicken Sie auf jede Kategorie):</label>
+                        <div class="checkbox-group">
+                            <div class="checkbox-item" data-category="begruessung" onclick="toggleCheckbox(this)">
+                                <strong>Begrüßung</strong>
+                                <div>Status: <span class="status">Nicht bewertet</span></div>
+                            </div>
+                            <div class="checkbox-item" data-category="legitimation" onclick="toggleCheckbox(this)">
+                                <strong>Legitimation</strong>
+                                <div>Status: <span class="status">Nicht bewertet</span></div>
+                            </div>
+                            <div class="checkbox-item" data-category="pka" onclick="toggleCheckbox(this)">
+                                <strong>PKA</strong>
+                                <div>Status: <span class="status">Nicht bewertet</span></div>
+                            </div>
+                            <div class="checkbox-item" data-category="kek" onclick="toggleCheckbox(this)">
+                                <strong>KEK</strong>
+                                <div>Status: <span class="status">Nicht bewertet</span></div>
+                            </div>
+                            <div class="checkbox-item" data-category="angebot" onclick="toggleCheckbox(this)">
+                                <strong>Angebot</strong>
+                                <div>Status: <span class="status">Nicht bewertet</span></div>
+                            </div>
+                            <div class="checkbox-item" data-category="zusammenfassung" onclick="toggleCheckbox(this)">
+                                <strong>Zusammenfassung</strong>
+                                <div>Status: <span class="status">Nicht bewertet</span></div>
+                            </div>
+                            <div class="checkbox-item" data-category="kzb" onclick="toggleCheckbox(this)">
+                                <strong>KZB</strong>
+                                <div>Status: <span class="status">Nicht bewertet</span></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="performance-slider">
+                        <label for="performanceRating">Leistungsbewertung (0-10):</label>
+                        <input type="range" id="performanceRating" class="slider" min="0" max="10" value="5" oninput="updatePerformanceDisplay()">
+                        <div class="score-display" id="performanceDisplay">5</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="coachingNotes">Coaching Notizen:</label>
+                        <textarea id="coachingNotes" rows="4" placeholder="Zusätzliche Notizen zum Coaching..."></textarea>
+                    </div>
+
+                    <div class="score-display">
+                        Gesamtbewertung: <span id="totalScore">0.0</span>
+                    </div>
+
+                    <button type="submit" class="btn">Coaching speichern</button>
+                </form>
+            </div>
+
+            <!-- Team View Section -->
+            <div id="teamViewSection" class="section hidden">
+                <h2>Team Ansicht</h2>
+                <div class="dashboard-grid">
+                    <div class="card">
+                        <h3>Team Coachings</h3>
+                        <div class="stat-number" id="teamCoachingCount">0</div>
+                    </div>
+                    <div class="card">
+                        <h3>Team Durchschnitt</h3>
+                        <div class="stat-number" id="teamAverage">0.0</div>
+                    </div>
+                    <div class="card">
+                        <h3>Beste Performance</h3>
+                        <div class="stat-number" id="teamBest">0.0</div>
+                    </div>
+                </div>
+                
+                <div class="chart-container">
+                    <h3>Team Performance</h3>
+                    <canvas id="teamChart"></canvas>
+                </div>
+
+                <div class="coaching-list" id="teamCoachingList">
+                    <!-- Team coaching items will be loaded here -->
+                </div>
+            </div>
+
+            <!-- Complete View Section -->
+            <div id="completeViewSection" class="section hidden">
+                <h2>Gesamtansicht aller Teams</h2>
+                <div class="dashboard-grid">
+                    <div class="card">
+                        <h3>Gesamt Coachings</h3>
+                        <div class="stat-number" id="totalCoachings">0</div>
+                    </div>
+                    <div class="card">
+                        <h3>Durchschnittliche Zeit</h3>
+                        <div class="stat-number" id="avgTime">0</div>
+                    </div>
+                    <div class="card">
+                        <h3>Bestes Team</h3>
+                        <div class="stat-number" id="bestTeam">-</div>
+                    </div>
+                    <div class="card">
+                        <h3>Coaching Styles</h3>
+                        <div class="stat-number" id="styleCount">-</div>
+                    </div>
+                </div>
+                
+                <div class="chart-container">
+                    <h3>Alle Teams Performance</h3>
+                    <canvas id="completeChart"></canvas>
+                </div>
+
+                <div class="coaching-list" id="completeCoachingList">
+                    <!-- All coaching items will be loaded here -->
+                </div>
+            </div>
+
+            <!-- Admin Panel -->
+            <div id="adminSection" class="section hidden">
+                <h2>Admin Panel</h2>
+                
+                <div class="form-group">
+                    <h3>Neuen Benutzer erstellen</h3>
+                    <form onsubmit="createUser(event)">
+                        <div class="form-group">
+                            <label for="newUsername">Benutzername:</label>
+                            <input type="text" id="newUsername" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="newPassword">Passwort:</label>
+                            <input type="password" id="newPassword" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="userRole">Rolle:</label>
+                            <select id="userRole" required>
+                                <option value="team_leader">Team Leader</option>
+                                <option value="quality_manager">Quality Manager</option>
+                                <option value="project_manager">Projekt Manager</option>
+                                <option value="admin">Admin</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="assignedTeam">Zugewiesenes Team (nur für Team Leader):</label>
+                            <select id="assignedTeam">
+                                <option value="">Kein Team</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn">Benutzer erstellen</button>
+                    </form>
+                </div>
+
+                <div class="form-group">
+                    <h3>Bestehende Benutzer</h3>
+                    <div id="userList">
+                        <!-- User list will be populated here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Project Manager Section -->
+            <div id="projectManagerSection" class="section hidden">
+                <h2>Projekt Manager Dashboard</h2>
+                <div class="coaching-list" id="pmCoachingList">
+                    <!-- All coachings with note addition capability -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let currentUser = null;
+        let coachingData = [];
+        let userData = [];
+        let teams = [];
+        let checkboxStates = {};
+
+        // Initialize application
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeApp();
+        });
+
+        function initializeApp() {
+            // Initialize demo data
+            initializeDemoData();
+            resetCheckboxes();
+        }
+
+        function initializeDemoData() {
+            // Initialize teams
+            teams = [];
+            for (let i = 1; i <= 10; i++) {
+                const teamMembers = [];
+                for (let j = 1; j <= 15; j++) {
+                    teamMembers.push(`Mitarbeiter ${i}-${j}`);
+                }
+                teams.push({
+                    id: i,
+                    name: `Team ${i}`,
+                    leader: `Team Leader ${i}`,
+                    members: teamMembers
+                });
+            }
+
+            // Initialize users
+            userData = [
+                { username: 'admin', password: 'admin123', role: 'admin', team: null },
+                { username: 'pm', password: 'pm123', role: 'project_manager', team: null },
+                { username: 'qm', password: 'qm123', role: 'quality_manager', team: null }
+            ];
+
+            // Add team leaders
+            for (let i = 1; i <= 10; i++) {
+                userData.push({
+                    username: `tl${i}`,
+                    password: `team${i}123`,
+                    role: 'team_leader',
+                    team: i
+                });
+            }
+
+            // Initialize some demo coaching data
+            coachingData = [
+                {
+                    id: 1,
+                    teamId: 1,
+                    teamMember: 'Mitarbeiter 1-1',
+                    coachingStyle: 'side-by-side',
+                    tcapId: null,
+                    timeSpent: 30,
+                    checkmarks: {
+                        begruessung: 'checked',
+                        legitimation: 'checked',
+                        pka: 'neutral',
+                        kek: 'checked',
+                        angebot: 'unchecked',
+                        zusammenfassung: 'checked',
+                        kzb: 'checked'
+                    },
+                    performanceRating: 7,
+                    totalScore: 7.2,
+                    notes: 'Gutes Coaching, Verbesserung bei Angebot nötig',
+                    date: new Date().toLocaleDateString('de-DE'),
+                coachBy: currentUser.username,
+                projectNotes: ''
+            };
+
+            coachingData.push(coaching);
+            
+            // Reset form
+            document.querySelector('.coaching-form').reset();
+            resetCheckboxes();
+            document.getElementById('performanceRating').value = 5;
+            document.getElementById('performanceDisplay').textContent = '5';
+            document.getElementById('totalScore').textContent = '0.0';
+            
+            alert('Coaching erfolgreich gespeichert!');
+            updateDashboard();
+        }
+
+        function showSection(sectionName) {
+            // Hide all sections
+            document.querySelectorAll('.section').forEach(section => {
+                if (section.id !== 'loginScreen') {
+                    section.classList.add('hidden');
+                }
+            });
+
+            // Show selected section
+            const targetSection = document.getElementById(sectionName + 'Section');
+            if (targetSection) {
+                targetSection.classList.remove('hidden');
+            }
+
+            // Update data based on section
+            switch (sectionName) {
+                case 'overview':
+                    updateOverview();
+                    break;
+                case 'teamView':
+                    updateTeamView();
+                    break;
+                case 'completeView':
+                    updateCompleteView();
+                    break;
+                case 'admin':
+                    updateAdminPanel();
+                    break;
+                case 'projectManager':
+                    updateProjectManagerView();
+                    break;
+            }
+        }
+
+        function updateDashboard() {
+            updateOverview();
+            updateTeamView();
+            updateCompleteView();
+        }
+
+        function updateOverview() {
+            const today = new Date().toLocaleDateString('de-DE');
+            const todayCoachings = coachingData.filter(c => c.date === today);
+            
+            document.getElementById('todayCoachings').textContent = todayCoachings.length;
+            
+            if (coachingData.length > 0) {
+                const avgScore = coachingData.reduce((sum, c) => sum + c.totalScore, 0) / coachingData.length;
+                document.getElementById('avgScore').textContent = avgScore.toFixed(1);
+                
+                const totalTime = coachingData.reduce((sum, c) => sum + c.timeSpent, 0);
+                document.getElementById('totalTime').textContent = totalTime;
+            }
+
+            // Create performance chart
+            createPerformanceChart();
+        }
+
+        function updateTeamView() {
+            if (currentUser.role !== 'team_leader') return;
+
+            const teamCoachings = coachingData.filter(c => c.teamId === currentUser.team);
+            document.getElementById('teamCoachingCount').textContent = teamCoachings.length;
+
+            if (teamCoachings.length > 0) {
+                const teamAvg = teamCoachings.reduce((sum, c) => sum + c.totalScore, 0) / teamCoachings.length;
+                document.getElementById('teamAverage').textContent = teamAvg.toFixed(1);
+                
+                const teamBest = Math.max(...teamCoachings.map(c => c.totalScore));
+                document.getElementById('teamBest').textContent = teamBest.toFixed(1);
+            }
+
+            updateTeamCoachingList();
+            createTeamChart();
+        }
+
+        function updateTeamCoachingList() {
+            if (currentUser.role !== 'team_leader') return;
+
+            const teamCoachings = coachingData.filter(c => c.teamId === currentUser.team);
+            const listContainer = document.getElementById('teamCoachingList');
+            
+            listContainer.innerHTML = '';
+            
+            teamCoachings.forEach(coaching => {
+                const item = createCoachingItem(coaching);
+                listContainer.appendChild(item);
+            });
+        }
+
+        function updateCompleteView() {
+            document.getElementById('totalCoachings').textContent = coachingData.length;
+            
+            if (coachingData.length > 0) {
+                const avgTime = coachingData.reduce((sum, c) => sum + c.timeSpent, 0) / coachingData.length;
+                document.getElementById('avgTime').textContent = Math.round(avgTime);
+                
+                // Find best team
+                const teamScores = {};
+                coachingData.forEach(c => {
+                    if (!teamScores[c.teamId]) {
+                        teamScores[c.teamId] = { total: 0, count: 0 };
+                    }
+                    teamScores[c.teamId].total += c.totalScore;
+                    teamScores[c.teamId].count += 1;
+                });
+                
+                let bestTeam = null;
+                let bestScore = 0;
+                Object.entries(teamScores).forEach(([teamId, data]) => {
+                    const avg = data.total / data.count;
+                    if (avg > bestScore) {
+                        bestScore = avg;
+                        bestTeam = `Team ${teamId}`;
+                    }
+                });
+                
+                document.getElementById('bestTeam').textContent = bestTeam || '-';
+                
+                // Count coaching styles
+                const styles = coachingData.reduce((acc, c) => {
+                    acc[c.coachingStyle] = (acc[c.coachingStyle] || 0) + 1;
+                    return acc;
+                }, {});
+                
+                document.getElementById('styleCount').textContent = 
+                    Object.entries(styles).map(([style, count]) => `${style}: ${count}`).join(', ') || '-';
+            }
+
+            updateCompleteCoachingList();
+            createCompleteChart();
+        }
+
+        function updateCompleteCoachingList() {
+            const listContainer = document.getElementById('completeCoachingList');
+            listContainer.innerHTML = '';
+            
+            coachingData.forEach(coaching => {
+                const item = createCoachingItem(coaching, true);
+                listContainer.appendChild(item);
+            });
+        }
+
+        function createCoachingItem(coaching, showTeam = false) {
+            const item = document.createElement('div');
+            item.className = 'coaching-item';
+            
+            const team = teams.find(t => t.id === coaching.teamId);
+            const teamName = team ? team.name : `Team ${coaching.teamId}`;
+            
+            const checkmarkSummary = Object.entries(coaching.checkmarks)
+                .map(([key, value]) => {
+                    const icon = value === 'checked' ? '✅' : value === 'neutral' ? '➖' : '❌';
+                    return `${key}: ${icon}`;
+                }).join(' | ');
+
+            item.innerHTML = `
+                <div style="display: flex; justify-content: between; align-items: center;">
+                    <div>
+                        <strong>${coaching.teamMember}</strong> ${showTeam ? `(${teamName})` : ''}
+                        <div style="color: var(--telekom-light-magenta);">
+                            Bewertung: ${coaching.totalScore.toFixed(1)} | 
+                            Zeit: ${coaching.timeSpent} Min | 
+                            Stil: ${coaching.coachingStyle}
+                            ${coaching.tcapId ? ` | T-CAP: ${coaching.tcapId}` : ''}
+                        </div>
+                    </div>
+                    <div style="text-align: right;">
+                        <div>${coaching.date}</div>
+                        <div style="font-size: 0.9em; color: #ccc;">von: ${coaching.coachBy}</div>
+                    </div>
+                </div>
+                <div style="margin-top: 10px; font-size: 0.8em;">
+                    ${checkmarkSummary}
+                </div>
+                ${coaching.notes ? `<div style="margin-top: 10px; font-style: italic;">"${coaching.notes}"</div>` : ''}
+                ${coaching.projectNotes ? `<div style="margin-top: 10px; padding: 10px; background: var(--telekom-dark); border-left: 3px solid var(--telekom-magenta);"><strong>PM Notiz:</strong> ${coaching.projectNotes}</div>` : ''}
+                ${currentUser.role === 'project_manager' ? `
+                    <div style="margin-top: 10px;">
+                        <input type="text" placeholder="Projekt Manager Notiz hinzufügen..." 
+                               onkeypress="if(event.key==='Enter') addProjectNote(${coaching.id}, this.value)"
+                               style="width: 100%; padding: 8px; background: var(--telekom-dark); border: 1px solid var(--telekom-magenta); color: white; border-radius: 4px;">
+                    </div>
+                ` : ''}
+            `;
+            
+            return item;
+        }
+
+        function addProjectNote(coachingId, note) {
+            if (!note.trim()) return;
+            
+            const coaching = coachingData.find(c => c.id === coachingId);
+            if (coaching) {
+                coaching.projectNotes = note;
+                updateProjectManagerView(); // Refresh the view
+                alert('Notiz hinzugefügt!');
+            }
+        }
+
+        function updateAdminPanel() {
+            populateAdminTeamSelector();
+            updateUserList();
+        }
+
+        function populateAdminTeamSelector() {
+            const teamSelect = document.getElementById('assignedTeam');
+            teamSelect.innerHTML = '<option value="">Kein Team</option>';
+            
+            teams.forEach(team => {
+                const option = document.createElement('option');
+                option.value = team.id;
+                option.textContent = team.name;
+                teamSelect.appendChild(option);
+            });
+        }
+
+        function updateUserList() {
+            const userList = document.getElementById('userList');
+            userList.innerHTML = '';
+            
+            userData.forEach(user => {
+                const userItem = document.createElement('div');
+                userItem.className = 'coaching-item';
+                userItem.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <strong>${user.username}</strong>
+                            <div style="color: var(--telekom-light-magenta);">
+                                Rolle: ${getRoleDisplayName(user.role)}
+                                ${user.team ? ` | Team: ${user.team}` : ''}
+                            </div>
+                        </div>
+                        <button class="btn" onclick="deleteUser('${user.username}')" 
+                                ${user.username === 'admin' ? 'disabled' : ''}>
+                            Löschen
+                        </button>
+                    </div>
+                `;
+                userList.appendChild(userItem);
+            });
+        }
+
+        function createUser(event) {
+            event.preventDefault();
+            
+            const username = document.getElementById('newUsername').value;
+            const password = document.getElementById('newPassword').value;
+            const role = document.getElementById('userRole').value;
+            const team = document.getElementById('assignedTeam').value;
+            
+            // Check if username already exists
+            if (userData.find(u => u.username === username)) {
+                alert('Benutzername bereits vorhanden!');
+                return;
+            }
+            
+            const newUser = {
+                username: username,
+                password: password,
+                role: role,
+                team: team ? parseInt(team) : null
+            };
+            
+            userData.push(newUser);
+            
+            // Reset form
+            event.target.reset();
+            
+            alert('Benutzer erfolgreich erstellt!');
+            updateUserList();
+        }
+
+        function deleteUser(username) {
+            if (username === 'admin') {
+                alert('Admin-Benutzer kann nicht gelöscht werden!');
+                return;
+            }
+            
+            if (confirm(`Benutzer "${username}" wirklich löschen?`)) {
+                userData = userData.filter(u => u.username !== username);
+                updateUserList();
+                alert('Benutzer gelöscht!');
+            }
+        }
+
+        function updateProjectManagerView() {
+            const listContainer = document.getElementById('pmCoachingList');
+            listContainer.innerHTML = '';
+            
+            coachingData.forEach(coaching => {
+                const item = createCoachingItem(coaching, true);
+                listContainer.appendChild(item);
+            });
+        }
+
+        function getRoleDisplayName(role) {
+            const roleNames = {
+                'admin': 'Administrator',
+                'project_manager': 'Projekt Manager',
+                'quality_manager': 'Quality Manager',
+                'team_leader': 'Team Leader'
+            };
+            return roleNames[role] || role;
+        }
+
+        function createPerformanceChart() {
+            const ctx = document.getElementById('performanceChart');
+            if (!ctx) return;
+
+            // Get last 7 days of data
+            const dates = [];
+            const scores = [];
+            
+            for (let i = 6; i >= 0; i--) {
+                const date = new Date();
+                date.setDate(date.getDate() - i);
+                const dateStr = date.toLocaleDateString('de-DE');
+                dates.push(dateStr);
+                
+                const dayCoachings = coachingData.filter(c => c.date === dateStr);
+                const dayAvg = dayCoachings.length > 0 
+                    ? dayCoachings.reduce((sum, c) => sum + c.totalScore, 0) / dayCoachings.length 
+                    : 0;
+                scores.push(dayAvg);
+            }
+
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: dates,
+                    datasets: [{
+                        label: 'Durchschnittliche Bewertung',
+                        data: scores,
+                        borderColor: '#E20074',
+                        backgroundColor: 'rgba(226, 0, 116, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: 'white'
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 10,
+                            ticks: {
+                                color: 'white'
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                color: 'white'
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function createTeamChart() {
+            const ctx = document.getElementById('teamChart');
+            if (!ctx || currentUser.role !== 'team_leader') return;
+
+            const teamCoachings = coachingData.filter(c => c.teamId === currentUser.team);
+            
+            // Group by team member
+            const memberStats = {};
+            teamCoachings.forEach(coaching => {
+                if (!memberStats[coaching.teamMember]) {
+                    memberStats[coaching.teamMember] = [];
+                }
+                memberStats[coaching.teamMember].push(coaching.totalScore);
+            });
+
+            const labels = Object.keys(memberStats);
+            const avgScores = labels.map(member => {
+                const scores = memberStats[member];
+                return scores.reduce((sum, score) => sum + score, 0) / scores.length;
+            });
+
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Durchschnittsbewertung',
+                        data: avgScores,
+                        backgroundColor: 'rgba(226, 0, 116, 0.8)',
+                        borderColor: '#E20074',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: 'white'
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 10,
+                            ticks: {
+                                color: 'white'
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                color: 'white'
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function createCompleteChart() {
+            const ctx = document.getElementById('completeChart');
+            if (!ctx) return;
+
+            // Group by team
+            const teamStats = {};
+            coachingData.forEach(coaching => {
+                if (!teamStats[coaching.teamId]) {
+                    teamStats[coaching.teamId] = [];
+                }
+                teamStats[coaching.teamId].push(coaching.totalScore);
+            });
+
+            const labels = Object.keys(teamStats).map(id => `Team ${id}`);
+            const avgScores = Object.values(teamStats).map(scores => 
+                scores.reduce((sum, score) => sum + score, 0) / scores.length
+            );
+
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Team Durchschnitt',
+                        data: avgScores,
+                        backgroundColor: 'rgba(226, 0, 116, 0.8)',
+                        borderColor: '#E20074',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: 'white'
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 10,
+                            ticks: {
+                                color: 'white'
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                color: 'white'
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function logout() {
+            currentUser = null;
+            document.getElementById('mainDashboard').classList.add('hidden');
+            document.getElementById('loginScreen').classList.remove('hidden');
+            
+            // Reset login form
+            document.getElementById('username').value = '';
+            document.getElementById('password').value = '';
+        }
+    </script>
+</body>
+</html> new Date().toLocaleDateString('de-DE'),
+                    coachBy: 'Team Leader 1',
+                    projectNotes: ''
+                }
+            ];
+        }
+
+        function handleLogin(event) {
+            event.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            const user = userData.find(u => u.username === username && u.password === password);
+            
+            if (user) {
+                currentUser = user;
+                showMainDashboard();
+            } else {
+                alert('Ungültige Anmeldedaten');
+            }
+        }
+
+        function showMainDashboard() {
+            document.getElementById('loginScreen').classList.add('hidden');
+            document.getElementById('mainDashboard').classList.remove('hidden');
+            
+            document.getElementById('userWelcome').textContent = 
+                `Willkommen, ${currentUser.username} (${getRoleDisplayName(currentUser.role)})`;
+
+            setupUserInterface();
+            showSection('overview');
+            updateDashboard();
+        }
+
+        function setupUserInterface() {
+            // Show/hide buttons based on user role
+            const addCoachingBtn = document.getElementById('addCoachingBtn');
+            const teamViewBtn = document.getElementById('teamViewBtn');
+            const adminBtn = document.getElementById('adminBtn');
+            const pmBtn = document.getElementById('pmBtn');
+            const teamSelectorDiv = document.getElementById('teamSelectorDiv');
+
+            if (currentUser.role === 'admin') {
+                adminBtn.classList.remove('hidden');
+            }
+
+            if (currentUser.role === 'project_manager') {
+                pmBtn.classList.remove('hidden');
+            }
+
+            if (currentUser.role === 'team_leader') {
+                teamSelectorDiv.classList.add('hidden');
+            } else if (currentUser.role === 'quality_manager') {
+                populateTeamSelector();
+            }
+
+            if (currentUser.role === 'admin') {
+                addCoachingBtn.classList.add('hidden');
+                teamViewBtn.classList.add('hidden');
+            }
+
+            populateTeamMembers();
+        }
+
+        function populateTeamSelector() {
+            const teamSelect = document.getElementById('selectedTeam');
+            teamSelect.innerHTML = '<option value="">Team auswählen...</option>';
+            
+            teams.forEach(team => {
+                const option = document.createElement('option');
+                option.value = team.id;
+                option.textContent = team.name;
+                teamSelect.appendChild(option);
+            });
+        }
+
+        function updateTeamMembers() {
+            const selectedTeamId = document.getElementById('selectedTeam').value;
+            const teamMemberSelect = document.getElementById('teamMember');
+            
+            teamMemberSelect.innerHTML = '<option value="">Mitglied auswählen...</option>';
+            
+            if (selectedTeamId) {
+                const team = teams.find(t => t.id == selectedTeamId);
+                if (team) {
+                    team.members.forEach(member => {
+                        const option = document.createElement('option');
+                        option.value = member;
+                        option.textContent = member;
+                        teamMemberSelect.appendChild(option);
+                    });
+                }
+            }
+        }
+
+        function populateTeamMembers() {
+            if (currentUser.role === 'team_leader') {
+                const team = teams.find(t => t.id === currentUser.team);
+                if (team) {
+                    const teamMemberSelect = document.getElementById('teamMember');
+                    teamMemberSelect.innerHTML = '<option value="">Mitglied auswählen...</option>';
+                    
+                    team.members.forEach(member => {
+                        const option = document.createElement('option');
+                        option.value = member;
+                        option.textContent = member;
+                        teamMemberSelect.appendChild(option);
+                    });
+                }
+            }
+        }
+
+        function resetCheckboxes() {
+            checkboxStates = {
+                begruessung: 'unchecked',
+                legitimation: 'unchecked',
+                pka: 'unchecked',
+                kek: 'unchecked',
+                angebot: 'unchecked',
+                zusammenfassung: 'unchecked',
+                kzb: 'unchecked'
+            };
+
+            document.querySelectorAll('.checkbox-item').forEach(item => {
+                item.classList.remove('checked', 'neutral');
+                const status = item.querySelector('.status');
+                status.textContent = 'Nicht bewertet';
+            });
+
+            updateTotalScore();
+        }
+
+        function toggleCheckbox(element) {
+            const category = element.dataset.category;
+            const status = element.querySelector('.status');
+            
+            // Cycle through states: unchecked -> checked -> neutral -> unchecked
+            switch (checkboxStates[category]) {
+                case 'unchecked':
+                    checkboxStates[category] = 'checked';
+                    element.classList.remove('neutral');
+                    element.classList.add('checked');
+                    status.textContent = 'Erfüllt';
+                    break;
+                case 'checked':
+                    checkboxStates[category] = 'neutral';
+                    element.classList.remove('checked');
+                    element.classList.add('neutral');
+                    status.textContent = 'k.A.';
+                    break;
+                case 'neutral':
+                    checkboxStates[category] = 'unchecked';
+                    element.classList.remove('neutral', 'checked');
+                    status.textContent = 'Nicht erfüllt';
+                    break;
+            }
+
+            updateTotalScore();
+        }
+
+        function updatePerformanceDisplay() {
+            const rating = document.getElementById('performanceRating').value;
+            document.getElementById('performanceDisplay').textContent = rating;
+            updateTotalScore();
+        }
+
+        function updateTotalScore() {
+            const performanceRating = parseInt(document.getElementById('performanceRating').value);
+            
+            // Calculate checkbox score (count only 'checked' as 1, others as 0)
+            let checkboxScore = 0;
+            const totalCheckboxes = Object.keys(checkboxStates).length;
+            
+            Object.values(checkboxStates).forEach(state => {
+                if (state === 'checked') {
+                    checkboxScore += 1;
+                }
+            });
+            
+            const checkboxPercentage = (checkboxScore / totalCheckboxes) * 10;
+            
+            // Weighted average: 80% performance, 20% checkboxes
+            const totalScore = (performanceRating * 0.8) + (checkboxPercentage * 0.2);
+            
+            document.getElementById('totalScore').textContent = totalScore.toFixed(1);
+        }
+
+        function toggleTcapId() {
+            const style = document.getElementById('coachingStyle').value;
+            const tcapGroup = document.getElementById('tcapIdGroup');
+            
+            if (style === 'tcap') {
+                tcapGroup.classList.remove('hidden');
+                document.getElementById('tcapId').required = true;
+            } else {
+                tcapGroup.classList.add('hidden');
+                document.getElementById('tcapId').required = false;
+            }
+        }
+
+        function addCoaching(event) {
+            event.preventDefault();
+            
+            let teamId;
+            if (currentUser.role === 'team_leader') {
+                teamId = currentUser.team;
+            } else {
+                teamId = parseInt(document.getElementById('selectedTeam').value);
+            }
+
+            const coaching = {
+                id: coachingData.length + 1,
+                teamId: teamId,
+                teamMember: document.getElementById('teamMember').value,
+                coachingStyle: document.getElementById('coachingStyle').value,
+                tcapId: document.getElementById('tcapId').value || null,
+                timeSpent: parseInt(document.getElementById('timeSpent').value),
+                checkmarks: { ...checkboxStates },
+                performanceRating: parseInt(document.getElementById('performanceRating').value),
+                totalScore: parseFloat(document.getElementById('totalScore').textContent),
+                notes: document.getElementById('coachingNotes').value,
+                date:
